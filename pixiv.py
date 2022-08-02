@@ -14,7 +14,7 @@ class Pixiv_old():
 
 
         self.start = 1
-        self.last = 99818048
+        self.last = 100188567
         self.devide = 200000
 
 
