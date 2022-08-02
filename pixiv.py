@@ -76,17 +76,17 @@ class Pixiv():
                             p.update({"ugoira_meta": ugoira_meta.json()["body"]}) # UPDATE META UGOIRA
                             break
                         elif ugoira_meta.status_code == 429:
-                            self.logger("ERROR: {id}: Too many requests. Sleeping 1 min".format(id=illust_id))
+                            self.logger("WARNING: {id}: Too many requests. Sleeping 1 min".format(id=illust_id))
                             self.modules.time.sleep(60)
                         else: # on ERROR
                             try:
                                 if ugoira_meta.json()["error"]:
-                                    self.logger("ERROR: {id}: {status_code} {message}".format(id=illust_id, status_code=ugoira_meta.status_code, message=ugoira_meta.json()["message"]))
+                                    self.logger("ERROR: Ugoira {id}: {status_code} {message}".format(id=illust_id, status_code=ugoira_meta.status_code, message=ugoira_meta.json()["message"]))
                                     break
                                 else:
-                                    self.logger("ERROR: {id}: {status_code}".format(id=illust_id, status_code=ugoira_meta.status_code))
+                                    self.logger("ERROR: Ugoira {id}: {status_code}".format(id=illust_id, status_code=ugoira_meta.status_code))
                             except:
-                                self.logger("ERROR: {id}: {status_code}".format(id=illust_id, status_code=ugoira_meta.status_code))
+                                self.logger("ERROR: Ugoira {id}: {status_code}".format(id=illust_id, status_code=ugoira_meta.status_code))
                             break # Error handling end
                 self.logger("INFO : {id}: {status_code}".format(id=illust_id, status_code=data.status_code))
                 break
@@ -97,13 +97,15 @@ class Pixiv():
                 try:
                     if data.json()["error"]:
                         self.logger("ERROR: {id}: {status_code} {message}".format(id=illust_id, status_code=data.status_code, message=data.json()["message"]))
-                        break
+                        return {"stauts": data.status_code, "message": data.json()["message"]}
                     else:
                         self.logger("ERROR: {id}: {status_code}".format(id=illust_id, status_code=data.status_code))
+                        return {"stauts": data.status_code, "message": "Unknown error"}
                 except:
                     self.logger("ERROR: {id}: {status_code}".format(id=illust_id, status_code=data.status_code))
-                break # Error handling end
-        return p
+                    return {"stauts": data.status_code, "message": "Unknown error"}
+                # Error handling end
+        return {"stauts": 200, "data": p}
 
 class Pixiv_old():
     def __init__(self):
