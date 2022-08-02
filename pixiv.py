@@ -42,13 +42,13 @@ class Pixiv():
         for i in range(range_start, range_end): 
             url += "&ids[]=" + str(i)
         
-        data = self.modules.requests.get(url).json()
+        data = self.modules.requests.get(url)
         
-        if data["error"]:
-            self.logger("ERROR: {status_code} {message}".format(status_code=data["status_code"], message=data["message"]))
-            return {"stauts": 400, "message": data["message"]}
+        if data.json()["error"]:
+            self.logger("ERROR: {status_code} {message}".format(status_code=data.status_code, message=data.json()["message"]))
+            return {"stauts": data.status_code, "message": data.json()["message"]}
         else:
-            return {"status": 200, "data": data["body"], "message": data["message"]}
+            return {"status": 200, "data": data.json()["body"], "message": data.json()["message"]}
 
     def get_illust_data(self, illust_id):
         while True:
