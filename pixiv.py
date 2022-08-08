@@ -29,8 +29,8 @@ class Pixiv():
         self.ajax_url.uigora_url = "https://www.pixiv.net/ajax/illust/{}/ugoira_meta?lang=en"
         self.ajax_url.novel = "https://www.pixiv.net/ajax/novel/{}?lang=en"
         self.ajax_url.illust_small = "https://www.pixiv.net/ajax/user/0/illusts?lang=en"
-    
-    def get_small_data(self, range_start, range_end):
+
+    def get_small_illust_data(self, range_start, range_end):
         if range_end < range_start:
             self.logger("ERROR: range_end cannot be less than range_start")
             return {"stauts": 400, "message": "range_end cannot be less than range_start"}
