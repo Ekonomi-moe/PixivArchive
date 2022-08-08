@@ -5,16 +5,25 @@ class dummy():
         pass
 
 class Pixiv():
-    def __init__(self):
+    def __init__(self, storage = None):
+        import importlib
         self.debug = False
         self.ajax_url = dummy()
-        self.modules = dummy()
+
+        if storage is None:
+            self.storage = None
+            self.modules = dummy()
+        else:
+            self.storage = storage
+            try:
+                self.modules = self.storage.modules
+            except:
+                self.modules = dummy()
 
 
-        import requests
-        import time
-        self.modules.requests = requests
-        self.modules.time = time
+        
+        self.modules.requests = importlib.import_module('requests')
+        self.modules.time = importlib.import_module('time')
 
 
         self.ajax_url_setup()
