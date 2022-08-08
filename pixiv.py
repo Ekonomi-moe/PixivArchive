@@ -107,6 +107,36 @@ class Pixiv():
                 # Error handling end
         return {"stauts": 200, "data": p}
 
+    def get_novel_data(self, novel_id):
+        while True:
+            data = self.modules.requests.get(self.ajax_url.novel.format(novel_id))
+            if data.status_code == 200:
+                if data.json()["error"]:
+                    self.logger("ERROR: {id}: {message}".format(id=novel_id, message=data.json()["message"]))
+                    break
+                p = data.json()["body"]
+                del(p["zoneConfig"])
+                del(p["noLoginData"])
+                del(p["userNovels"])
+                self.logger("INFO : {id}: {status_code}".format(id=novel_id, status_code=data.status_code))
+                break
+            elif data.status_code == 429:
+                self.logger("WARNING: {id}: Too many requests. Sleeping 1 min".format(id=novel_id))
+                self.modules.time.sleep(60)
+            else: # on ERROR
+                try:
+                    if data.json()["error"]:
+                        self.logger("ERROR: {id}: {status_code} {message}".format(id=novel_id, status_code=data.status_code, message=data.json()["message"]))
+                        return {"stauts": data.status_code, "message": data.json()["message"]}
+                    else:
+                        self.logger("ERROR: {id}: {status_code}".format(id=novel_id, status_code=data.status_code))
+                        return {"stauts": data.status_code, "message": "Unknown error"}
+                except:
+                    self.logger("ERROR: {id}: {status_code}".format(id=novel_id, status_code=data.status_code))
+                    return {"stauts": data.status_code, "message": "Unknown error"}
+                # Error handling end
+        return {"stauts": 200, "data": p}
+
 class Pixiv_old():
     def __init__(self):
         self.debug = True
