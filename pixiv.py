@@ -16,6 +16,10 @@ class Pixiv():
         else:
             self.storage = storage
             try:
+                self.logger = self.storage.logger
+            except:
+                pass
+            try:
                 self.modules = self.storage.modules
             except:
                 self.modules = dummy()
