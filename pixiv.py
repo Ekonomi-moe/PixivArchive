@@ -42,10 +42,10 @@ class Pixiv():
     def get_small_illust_data(self, range_start, range_end):
         if range_end < range_start:
             self.logger("ERROR: range_end cannot be less than range_start")
-            return {"stauts": 400, "message": "range_end cannot be less than range_start"}
+            return {"stauts": 400, "message": "range_end cannot be less than range_start", "data": {}}
         if range_end - range_start > 100:
             self.logger("ERROR: range count cannot be greater than 100")
-            return {"stauts": 400, "message": "range count cannot be greater than 100"}
+            return {"stauts": 400, "message": "range count cannot be greater than 100", "data": {}}
         
         url = self.ajax_url.illust_small
         for i in range(range_start, range_end): 

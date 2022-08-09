@@ -18,7 +18,7 @@ class storage():
         self.modules.json = importlib.import_module('json')
         self.modules.pixiv = importlib.import_module('pixiv').Pixiv(self)
         self.Path = importlib.import_module('pathlib').Path
-        self.queue = []
+        self.queue = {}
 
 
         self.jsoncount = 0
@@ -73,12 +73,16 @@ class storage():
         self.jsonlines += 1        
         pass
 
+    def big_thread(self, id):
+        rtn = self.down_big_meta(id)
+        self.queue.update(rtn)
+
     def main(self):
         start = self.start
         smd = []
         for i in range(self.start, self.last):
             if i % 100 == 0:
-                smd = self.get_small_illust_data((start, i+1))
+                smd = list(self.get_small_illust_data((start, i+1))["data"].keys())
                 if smd == []:
                     start = i + 1
                     continue
