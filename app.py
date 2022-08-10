@@ -170,7 +170,36 @@ class storage():
                 self.json_insert(smd)
                 
                 start = i+1
+        # after last loop
+        self.logger("INFO:MAIN: Loading {start} - {end}".format(start=start, end=i+1))
+        smd = self.modules.pixiv.get_small_illust_data(start, i+1)
+        if smd["status"] != 200:
+            self.logger("WARNING:MAIN: RELoading {start} - {end}".format(start=start, end=i+1))
+            smd = self.modules.pixiv.get_small_illust_data(start, i+1)
+            if smd["status"] != 200:
+                self.logger("Error: {status} Error while download range {start}-{end}".format(status=smd["status"], start=start, end=i+1))
+                return
+        if smd["data"] == []: return
+        smd = list(smd["data"].keys())
 
+        if smd == []: return
+
+        for illustId in smd:
+            while True:
+                if len(self.thr) < self.thread:
+                    t = self.modules.Thread(target=self.big_thread, args=(illustId,))
+                    t.daemon = True
+                    t.start()
+                    self.thr.update({illustId:t})
+                    break
+                else:
+                    self.modules.time.sleep(0.1)
+
+        while True:
+            if len(self.thr) == 0: break
+            self.modules.time.sleep(0.3)
+                        
+        self.json_insert(smd)
 
 
 if __name__ == "__main__":
