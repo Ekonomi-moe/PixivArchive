@@ -163,9 +163,12 @@ class storage():
                         else:
                             self.modules.time.sleep(0.1)
                 
-                while True:
-                    if len(self.thr) == 0: break
-                    self.modules.time.sleep(0.3)
+                try:
+                    while True:
+                        if len(self.thr) == 0: break
+                        self.modules.time.sleep(0.3)
+                except KeyboardInterrupt:
+                    self.logger("INFO:MAIN: Program Stopped, KeyboardInterrupt")
                 
                 self.json_insert(smd)
                 
@@ -194,10 +197,13 @@ class storage():
                     break
                 else:
                     self.modules.time.sleep(0.1)
-
-        while True:
-            if len(self.thr) == 0: break
-            self.modules.time.sleep(0.3)
+        
+        try:
+            while True:
+                if len(self.thr) == 0: break
+                self.modules.time.sleep(0.3)
+        except KeyboardInterrupt:
+            self.logger("INFO:MAIN: Program Stopped, KeyboardInterrupt")
                         
         self.json_insert(smd)
 
