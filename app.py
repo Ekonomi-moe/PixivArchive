@@ -21,7 +21,8 @@ class storage():
         self.Path = importlib.import_module('pathlib').Path
         self.thr = {}
         self.downdata = {}
-        self.logpath = "./"
+        self.logpath = "./log"
+        self.workpath = "./download/"
 
 
         self.jsoncount = 0
@@ -37,6 +38,10 @@ class storage():
         self.logpath = self.Path(self.logpath) / "pixiv.log"
         self.logpath.touch()
         self.logpath = open(self.logpath, "a", encoding="utf-8")
+        self.workpath = self.Path(self.workpath)
+        self.workpath.mkdir(exist_ok=True)
+
+        self.modules.os.chdir(self.workpath)
 
         self.check_last_save()
 
