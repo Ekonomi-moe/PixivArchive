@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from prompt_toolkit import print_formatted_text as print
+
 class dummy():
     def __init__(self) -> None:
         pass
@@ -18,6 +20,7 @@ class storage():
         self.modules.requests = importlib.import_module('requests')
         self.modules.json = importlib.import_module('json')
         self.modules.pixiv = importlib.import_module('pixiv').Pixiv(self)
+        self.gc = importlib.import_module('gc')
         self.Path = importlib.import_module('pathlib').Path
         self.thr = {}
         self.downdata = {}
@@ -87,6 +90,7 @@ class storage():
         pass
     
     def json_bulk(self):
+        if self.exit: return
         try:
             tmp = self.jsonfile
             if self.jsonlines == self.devide:
@@ -95,6 +99,8 @@ class storage():
                     self.insert = ""
                 self.jsonlines = 0
                 self.jsonfile.close()
+                del(self.jsonfile)
+                self.gc.collect()
 
                 self.jsoncount += 1
                 self.jsonfile = open("metadata{num}.json".format(num=str(self.jsoncount).zfill(8)), "a", encoding="utf-8")
@@ -113,25 +119,32 @@ class storage():
             pass
 
     def json_insert(self, lst):
+        if self.exit: return
         for i in lst:
             self.json_bulk()
             self.insert += self.modules.json.dumps(self.downdata[i], ensure_ascii=False)+"\n"
             self.logger("INFO:STORE: {id} OK".format(id=i))
             self.jsonlines += 1
         self.jsonfile.write(self.insert)
+        del(self.insert)
+        self.gc.collect()
         self.insert = ""
         pass
 
     def big_thread(self, illustId):
         rtn = self.modules.pixiv.get_illust_data(illustId)
+        if rtn["status"] != 200:
+            self.logger("ERROR: {id} {status}".format(id=illustId, status=rtn["status"]))
+            self.exit = True
         self.downdata.update({illustId: rtn["data"]})
         self.thr.pop(illustId)
 
     def download_illust_meta(self):
+        if self.exit: return
         start = self.start
         smd = []
         for i in range(self.start, self.last):
-            if self.exit: return
+            if self.exit: return -1
             if i % 100 == 0:
                 self.logger("INFO:MAIN: Loading {start} - {end}".format(start=start, end=i+1))
                 smd = self.modules.pixiv.get_small_illust_data(start, i+1)
@@ -169,6 +182,7 @@ class storage():
                         self.modules.time.sleep(0.3)
                 except KeyboardInterrupt:
                     self.logger("INFO:MAIN: Program Stopped, KeyboardInterrupt")
+                    return -1
                 
                 self.json_insert(smd)
                 
@@ -181,11 +195,11 @@ class storage():
             smd = self.modules.pixiv.get_small_illust_data(start, i+1)
             if smd["status"] != 200:
                 self.logger("Error: {status} Error while download range {start}-{end}".format(status=smd["status"], start=start, end=i+1))
-                return
+                return 1
         if smd["data"] == []: return
         smd = list(smd["data"].keys())
 
-        if smd == []: return
+        if smd == []: return 1
 
         for illustId in smd:
             while True:
@@ -207,9 +221,33 @@ class storage():
                         
         self.json_insert(smd)
 
+        return 0
+
 
 if __name__ == "__main__":
+    from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+    from prompt_toolkit import PromptSession
+    session = PromptSession()
+
     storage = storage()
-    storage.download_illust_meta()
-    storage.json_close()
+    mainthread = storage.modules.Thread(target=storage.download_illust_meta)
+    mainthread.daemon = True
+    mainthread.start()
+    while True:
+        inp = session.prompt("> ")
+        if inp == "exit":
+            storage.exit = True
+            mainthread.join()
+            storage.json_close()
+            break
+        elif inp == "exitnow":
+            storage.exit = True
+            exit()
+        else:
+            try:
+                eval(source=inp)
+            except Exception as e:
+                print("EXCEPTION:",e)
+                pass
+    
 

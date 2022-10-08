@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from prompt_toolkit import print_formatted_text as print
+
 class dummy():
     def __init__(self) -> None:
         pass
 
 class Pixiv():
     def __init__(self, storage = None):
+        self.loop = 10
+
         import importlib
         self.debug = False
         self.ajax_url = dummy()
@@ -72,8 +76,20 @@ class Pixiv():
             return {"status": 200, "data": data.json()["body"], "message": data.json()["message"]}
 
     def get_illust_data(self, illust_id):
+        loop = 0
         while True:
-            data = self.modules.requests.get(self.ajax_url.illust.format(illust_id))
+            if self.storage.exit: return
+            loop += 1
+            if loop > self.loop:
+                self.logger("ERROR: {id}: Too many loops".format(id=illust_id))
+                return {"stauts": 400, "message": "Too many loops"}
+            try:
+                data = self.modules.requests.get(self.ajax_url.illust.format(illust_id))
+            #Except windows ssl error
+            except self.modules.requests.exceptions.SSLError:
+                self.logger("WARNING:GET: {id}: SSL ERROR while downloading picture meta. Sleeping 10 seconds".format(id=illust_id))
+                self.modules.time.sleep(10)
+                continue
             if data.status_code == 200:
                 if data.json()["error"]:
                     self.logger("ERROR:GET: {id}: {message}".format(id=illust_id, message=data.json()["message"]))
@@ -89,7 +105,13 @@ class Pixiv():
                 
                 if p["illustType"] == 2:
                     while True:
-                        ugoira_meta = self.modules.requests.get(self.ajax_url.uigora_url.format(illust_id))
+                        if self.storage.exit: return
+                        try:
+                            ugoira_meta = self.modules.requests.get(self.ajax_url.uigora_url.format(illust_id))
+                        except self.modules.requests.exceptions.SSLError:
+                            self.logger("WARNING:GET: {id}: SSL ERROR while downloading uigora meta. Sleeping 10 seconds".format(id=illust_id))
+                            self.modules.time.sleep(10)
+                            continue
                         if ugoira_meta.status_code == 200:
                             if ugoira_meta.json()["error"]:
                                 self.logger("ERROR:GET: {id}: {message}".format(id=illust_id, message=ugoira_meta.json()["message"]))
